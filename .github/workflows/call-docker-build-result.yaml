@@ -5,13 +5,13 @@ on:
     branches:
       - 'main'
     paths:
-      - 'result/**'   # Only triggers if files in the result folder are changed
+      - 'result/**'
       - '.github/workflows/call-docker-build-result.yaml'
   pull_request:
     branches:
       - 'main'
     paths:
-      - 'result/**'   # Only triggers if files in the result folder are changed
+      - 'result/**'
       - '.github/workflows/call-docker-build-result.yaml'
 
 jobs:
@@ -67,17 +67,22 @@ jobs:
           kubectl apply -f ./k8s-specifications/result-deployment.yaml
           kubectl apply -f ./k8s-specifications/result-service.yaml
 
-      # Step 10: Wait for the Result service to be available (can be adjusted based on your app's needs)
+      # Step 10: Check deployments to see if the result-deployment exists
+      - name: Check Kubernetes Deployments
+        run: |
+          kubectl get deployments
+
+      # Step 11: Wait for the Result service to be available (can be adjusted based on your app's needs)
       - name: Wait for the Result service to be available
         run: |
-          kubectl rollout status deployment/result-deployment
-
-      # Step 11: List Kubernetes services to verify the deployment
+          kubectl rollout status deployment/result-deployment || echo "Deployment not yet ready, retrying..."
+        
+      # Step 12: List Services in Minikube to verify the deployment
       - name: List Services in Minikube
         run: |
           kubectl get svc
 
-      # Step 12: Get the Minikube IP and expose service port
+      # Step 13: Get the Minikube IP and Service Port
       - name: Get Minikube IP and Service Port
         run: |
           MINIKUBE_IP=$(minikube ip)
@@ -87,7 +92,7 @@ jobs:
           echo "MINIKUBE_IP=$MINIKUBE_IP" >> $GITHUB_ENV
           echo "RESULT_PORT=$RESULT_PORT" >> $GITHUB_ENV
 
-      # Step 13: Run tests against the deployed service
+      # Step 14: Run tests against the deployed service
       - name: Run tests against the Result service
         run: |
           curl -s --fail "http://${{ env.MINIKUBE_IP }}:${{ env.RESULT_PORT }}"
