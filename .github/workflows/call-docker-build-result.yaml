@@ -77,16 +77,20 @@ jobs:
         run: |
           kubectl get svc
 
-      # Step 12: Run tests against the deployed service
+      # Step 12: Get the Minikube IP and expose service port
+      - name: Get Minikube IP and Service Port
+        run: |
+          MINIKUBE_IP=$(minikube ip)
+          RESULT_PORT=30001   # This should match the nodePort from result-service.yaml
+          echo "Minikube IP: $MINIKUBE_IP"
+          echo "Testing Result service at http://$MINIKUBE_IP:$RESULT_PORT"
+          echo "MINIKUBE_IP=$MINIKUBE_IP" >> $GITHUB_ENV
+          echo "RESULT_PORT=$RESULT_PORT" >> $GITHUB_ENV
+
+      # Step 13: Run tests against the deployed service
       - name: Run tests against the Result service
         run: |
-          # Assuming the result service is exposed and the port is 80. Adjust as needed.
-          result_service_url="http://$(minikube ip):80"
-          echo "Testing Result service at $result_service_url"
-
-          # Example test with curl (adjust as needed for your application)
-          curl -s --fail $result_service_url
+          curl -s --fail "http://${{ env.MINIKUBE_IP }}:${{ env.RESULT_PORT }}"
           
           # Optionally, you can also run more advanced tests here
-          curl -s --fail $result_service_url/test-url
-
+          curl -s --fail "http://${{ env.MINIKUBE_IP }}:${{ env.RESULT_PORT }}/test-url"
