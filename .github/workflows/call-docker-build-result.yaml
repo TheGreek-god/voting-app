@@ -1,5 +1,5 @@
 name: Build, Deploy Result Docker Image to Minikube and Test
- 
+
 on:
   push:
     branches:
@@ -13,71 +13,80 @@ on:
     paths:
       - 'result/**'   # Only triggers if files in the result folder are changed
       - '.github/workflows/call-docker-build-result.yaml'
- 
+
 jobs:
   build-deploy-test:
     runs-on: ubuntu-latest
- 
+
     steps:
       # Step 1: Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v2
- 
+
       # Step 2: Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
- 
+
       # Step 3: Build Result Docker Image (No push to Docker Hub)
       - name: Build Result Docker Image
         run: |
           docker build -t example-voting-app-result:latest ./result
- 
-      # Step 4: Set up Minikube on the GitHub runner
-      - name: Set up Minikube
-        uses: mikefarah/minikube-action@v2
-        with:
-          minikube-version: 'latest'
- 
-      # Step 5: Start Minikube with Docker driver
+
+      # Step 4: Install Minikube
+      - name: Install Minikube
+        run: |
+          curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+          sudo chmod +x minikube
+          sudo mv minikube /usr/local/bin/
+
+      # Step 5: Install kubectl
+      - name: Install kubectl
+        run: |
+          curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.24.0/bin/linux/amd64/kubectl
+          chmod +x ./kubectl
+          sudo mv ./kubectl /usr/local/bin/kubectl
+
+      # Step 6: Start Minikube
       - name: Start Minikube
         run: |
           minikube start --driver=docker
- 
-      # Step 6: Set up kubectl to communicate with Minikube
-      - name: Set up kubectl
-        run: |
-          sudo apt-get update && sudo apt-get install -y kubectl
-          alias kubectl='kubectl --context=minikube'
- 
-      # Step 7: Load the Docker image into Minikube (skip Docker Hub push)
+
+      # Step 7: Load the Docker image into Minikube
       - name: Load Docker Image into Minikube
         run: |
           minikube image load example-voting-app-result:latest
- 
-      # Step 8: Deploy the Result service to Minikube using Kubernetes manifests
+
+      # Step 8: Set up kubectl to use Minikube context
+      - name: Set up kubectl context for Minikube
+        run: |
+          kubectl config use-context minikube
+
+      # Step 9: Deploy the Result service to Minikube using Kubernetes manifests
       - name: Deploy Result to Minikube
         run: |
           kubectl apply -f ./k8s-specifications/result-deployment.yaml
           kubectl apply -f ./k8s-specifications/result-service.yaml
- 
-      # Step 9: Wait for the Result service to be available (can be adjusted based on your app's needs)
+
+      # Step 10: Wait for the Result service to be available (can be adjusted based on your app's needs)
       - name: Wait for the Result service to be available
         run: |
           kubectl rollout status deployment/result-deployment
- 
-      # Step 10: List Kubernetes services to verify the deployment
+
+      # Step 11: List Kubernetes services to verify the deployment
       - name: List Services in Minikube
         run: |
           kubectl get svc
- 
-      # Step 11: Run tests against the deployed service
+
+      # Step 12: Run tests against the deployed service
       - name: Run tests against the Result service
         run: |
           # Assuming the result service is exposed and the port is 80. Adjust as needed.
           result_service_url="http://$(minikube ip):80"
           echo "Testing Result service at $result_service_url"
- 
+
           # Example test with curl (adjust as needed for your application)
           curl -s --fail $result_service_url
+          
           # Optionally, you can also run more advanced tests here
           curl -s --fail $result_service_url/test-url
+
