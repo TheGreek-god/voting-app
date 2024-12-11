@@ -2,17 +2,17 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: db
-  name: db
+    app: postgres
+  name: postgres
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: db
+      app: postgres
   template:
     metadata:
       labels:
-        app: db
+        app: postgres
     spec:
       containers:
       - image: postgres:15-alpine
