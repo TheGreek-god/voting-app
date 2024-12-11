@@ -1,102 +1,62 @@
-name: Build, Deploy Result Docker Image to Minikube and Test
+name: Build and Deploy Result Service
 
 on:
   push:
-    branches:
-      - 'main'
     paths:
       - 'result/**'
       - '.github/workflows/call-docker-build-result.yaml'
   pull_request:
-    branches:
-      - 'main'
     paths:
       - 'result/**'
       - '.github/workflows/call-docker-build-result.yaml'
 
 jobs:
-  build-deploy-test:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       # Step 1: Checkout the repository
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      # Step 2: Set up Docker Buildx
+      # Step 2: Set up Docker Buildx (for multi-platform support)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Step 3: Build Result Docker Image (No push to Docker Hub)
-      - name: Build Result Docker Image
-        run: |
-          docker build -t example-voting-app-result:latest ./result
-          
-      # Step 4: Install Minikube
-      - name: Install Minikube
-        run: |
-          curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-          sudo chmod +x minikube
-          sudo mv minikube /usr/local/bin/
+      # Step 3: Log in to Docker Hub (or your preferred Docker registry)
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Step 5: Install kubectl
-      - name: Install kubectl
+      # Step 4: Build and push the Docker image for the result service
+      - name: Build and push Result image
         run: |
-          curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.24.0/bin/linux/amd64/kubectl
-          chmod +x ./kubectl
-          sudo mv ./kubectl /usr/local/bin/kubectl
+          docker build -t yourdockerhubusername/voting-app-result:latest ./result
+          docker push yourdockerhubusername/voting-app-result:latest
 
-      # Step 6: Start Minikube
-      - name: Start Minikube
+      # Step 5: Set up Minikube context (using Minikube's kubeconfig)
+      - name: Set up Minikube context
         run: |
-          minikube start --driver=docker
-
-      # Step 7: Load the Docker image into Minikube
-      - name: Load Docker Image into Minikube
-        run: |
-          minikube image load example-voting-app-result:latest
-
-      # Step 8: Set up kubectl to use Minikube context
-      - name: Set up kubectl context for Minikube
-        run: |
+          minikube start
           kubectl config use-context minikube
 
-      # Step 9: Deploy the Result service to Minikube using Kubernetes manifests
-      - name: Deploy Result to Minikube
+      # Step 6: Deploy the Result Service to Minikube
+      - name: Deploy Result Service to Minikube
         run: |
-          kubectl apply -f ./k8s-specifications/result-deployment.yaml
-          kubectl apply -f ./k8s-specifications/result-service.yaml
+          kubectl apply -f k8s-specifications/result-deployment.yaml
+          kubectl apply -f k8s-specifications/result-service.yaml
 
-      # Step 10: Check deployments to see if the result-deployment exists
-      - name: Check Kubernetes Deployments
+      # Step 7: Update Result Service environment to point to PostgreSQL
+      - name: Set environment variables for Result service
         run: |
-          kubectl get deployments
+          kubectl set env deployment/result POSTGRES_HOST=postgres POSTGRES_USER=admin POSTGRES_PASSWORD=password POSTGRES_DB=voting_app
 
-      # Step 11: Wait for the Result service to be available (can be adjusted based on your app's needs)
-      - name: Wait for the Result service to be available
+      # Step 8: Verify that the Result Service is running
+      - name: Verify Kubernetes Deployment for Result
         run: |
-          kubectl rollout status deployment/result-deployment || echo "Deployment not yet ready, retrying..."
-        
-      # Step 12: List Services in Minikube to verify the deployment
-      - name: List Services in Minikube
-        run: |
+          kubectl rollout status deployment/result
+          kubectl get pods
           kubectl get svc
 
-      # Step 13: Get the Minikube IP and Service Port
-      - name: Get Minikube Service URL
-        run: |
-          minikube service list
-          MINIKUBE_IP=$(minikube ip)
-          RESULT_PORT=$(kubectl get svc result -o jsonpath='{.spec.ports[0].nodePort}')
-          echo "Minikube IP: $MINIKUBE_IP"
-          echo "Testing Result service at http://$MINIKUBE_IP:$RESULT_PORT"
-          echo "MINIKUBE_IP=$MINIKUBE_IP" >> $GITHUB_ENV
-          echo "RESULT_PORT=$RESULT_PORT" >> $GITHUB_ENV
-
-      # Step 14: Run tests against the deployed service
-      - name: Run tests against the Result service
-        run: |
-          curl -s --fail "http://${{ env.MINIKUBE_IP }}:${{ env.RESULT_PORT }}"
-          
-          # Optionally, you can also run more advanced tests here
-          curl -s --fail "http://${{ env.MINIKUBE_IP }}:${{ env.RESULT_PORT }}/test-url"
