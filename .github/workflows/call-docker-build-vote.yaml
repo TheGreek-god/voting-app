@@ -1,6 +1,9 @@
 name: Build and Deploy Vote Service
 
 on:
+  # This triggers the workflow on a manual trigger
+  workflow_dispatch:
+  
   push:
     paths:
       - 'vote/**'
@@ -33,8 +36,8 @@ jobs:
       # Step 4: Build and push the Docker image for the vote service
       - name: Build and push Vote image
         run: |
-          docker build -t yourdockerhubusername/voting-app-vote:latest ./vote
-          docker push yourdockerhubusername/voting-app-vote:latest
+          docker build -t greekgod659/voting-app-vote:latest ./vote
+          docker push greekgod659/voting-app-vote:latest
 
       # Step 5: Set up Minikube context (using Minikube's kubeconfig)
       - name: Set up Minikube context
