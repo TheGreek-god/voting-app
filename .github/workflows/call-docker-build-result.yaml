@@ -87,7 +87,7 @@ jobs:
         run: |
           minikube service list
           MINIKUBE_IP=$(minikube ip)
-          RESULT_PORT=$(kubectl get svc result-service -o jsonpath='{.spec.ports[0].nodePort}')
+          RESULT_PORT=$(kubectl get svc result -o jsonpath='{.spec.ports[0].nodePort}')
           echo "Minikube IP: $MINIKUBE_IP"
           echo "Testing Result service at http://$MINIKUBE_IP:$RESULT_PORT"
           echo "MINIKUBE_IP=$MINIKUBE_IP" >> $GITHUB_ENV
