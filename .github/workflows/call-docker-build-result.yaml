@@ -1,6 +1,9 @@
 name: Build and Deploy Result Service
 
 on:
+  # This triggers the workflow on a manual trigger
+  workflow_dispatch:
+
   push:
     paths:
       - 'result/**'
