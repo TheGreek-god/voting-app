@@ -31,7 +31,7 @@ jobs:
       - name: Build Result Docker Image
         run: |
           docker build -t example-voting-app-result:latest ./result
-
+          
       # Step 4: Install Minikube
       - name: Install Minikube
         run: |
@@ -83,15 +83,15 @@ jobs:
           kubectl get svc
 
       # Step 13: Get the Minikube IP and Service Port
-        - name: Get Minikube Service URL
-          run: |
-            minikube service list
-            MINIKUBE_IP=$(minikube ip)
-            RESULT_PORT=$(kubectl get svc result-service -o jsonpath='{.spec.ports[0].nodePort}')
-            echo "Minikube IP: $MINIKUBE_IP"
-            echo "Testing Result service at http://$MINIKUBE_IP:$RESULT_PORT"
-            echo "MINIKUBE_IP=$MINIKUBE_IP" >> $GITHUB_ENV
-            echo "RESULT_PORT=$RESULT_PORT" >> $GITHUB_ENV
+      - name: Get Minikube Service URL
+        run: |
+          minikube service list
+          MINIKUBE_IP=$(minikube ip)
+          RESULT_PORT=$(kubectl get svc result-service -o jsonpath='{.spec.ports[0].nodePort}')
+          echo "Minikube IP: $MINIKUBE_IP"
+          echo "Testing Result service at http://$MINIKUBE_IP:$RESULT_PORT"
+          echo "MINIKUBE_IP=$MINIKUBE_IP" >> $GITHUB_ENV
+          echo "RESULT_PORT=$RESULT_PORT" >> $GITHUB_ENV
 
       # Step 14: Run tests against the deployed service
       - name: Run tests against the Result service
