@@ -36,8 +36,8 @@ jobs:
       # Step 4: Build and push the Docker image for the result service
       - name: Build and push Result image
         run: |
-          docker build -t yourdockerhubusername/voting-app-result:latest ./result
-          docker push yourdockerhubusername/voting-app-result:latest
+          docker build -t greekgod659/voting-app-result:latest ./result
+          docker push greekgod659/voting-app-result:latest
 
       # Step 5: Set up Minikube context (using Minikube's kubeconfig)
       - name: Set up Minikube context
