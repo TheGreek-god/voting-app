@@ -1,0 +1,85 @@
+Option 1: Set Environment Variables in the Deployment YAML
+If you have the vote-deployment.yaml file, you can define the REDIS_HOST environment variable inside it. This is the preferred method because it ensures that the environment variable is set correctly when the service starts.
+
+Here's an example of how you would modify the vote-deployment.yaml file to include the environment variable for Redis:
+
+vote-deployment.yaml
+yaml
+Copy code
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vote
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vote
+  template:
+    metadata:
+      labels:
+        app: vote
+    spec:
+      containers:
+        - name: vote
+          image: greekgod659/voting-app-vote:latest  # The image you've pushed to Docker Hub
+          ports:
+            - containerPort: 8080
+          env:
+            - name: REDIS_HOST
+              value: "redis"  # Pointing to the Redis service name
+You can then apply the updated deployment to your Minikube cluster:
+
+bash
+Copy code
+kubectl apply -f vote-deployment.yaml
+This will ensure that the Vote service will use the REDIS_HOST=redis environment variable, which points to the Redis service in the Minikube cluster.
+
+Option 2: Set Environment Variables After Deployment
+If you want to set the environment variable manually after the deployment, you can use the kubectl set env command:
+
+bash
+Copy code
+kubectl set env deployment/vote REDIS_HOST=redis
+This will update the environment variable for the Vote deployment, making sure it points to the Redis service running in Minikube.
+
+3. Verify the Environment Variable is Set
+Once the Vote service is deployed with the environment variable pointing to Redis, you can verify that the Vote service is using the correct environment variable by checking the logs of the Vote service.
+
+Get the name of the Vote pod:
+
+bash
+Copy code
+kubectl get pods -l app=vote
+Then, check the logs of the Vote pod to verify it's connecting to Redis:
+
+bash
+Copy code
+kubectl logs <vote-pod-name>
+Look for logs that indicate the Vote service is successfully connecting to Redis. For example, if you have logging in place like Connected to Redis, you should see that message.
+
+4. Manually Test Connectivity
+You can also manually test if the Vote service can connect to Redis using kubectl exec to open a shell in the Vote pod:
+
+bash
+Copy code
+kubectl exec -it <vote-pod-name> -- /bin/sh
+Then, inside the pod, use ping or any Redis client command to check if the connection to the Redis service is successful:
+
+bash
+Copy code
+ping redis
+This should resolve to the Redis service. You can also check Redis connection from within the pod by using a Redis client (e.g., redis-cli) to ensure that the connection is successful.
+
+Final Thoughts:
+By either setting the environment variable directly in the Kubernetes deployment YAML or using kubectl set env after the deployment, your Vote service will know how to point to Redis as long as Redis is deployed and running in Minikube. Once you've made sure everything is set up, the Vote service should be able to communicate with Redis using the REDIS_HOST=redis environment variable.
+
+Let me know if you need more details or run into any issues!
+
+
+
+
+
+
+
+
