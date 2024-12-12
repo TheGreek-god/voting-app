@@ -37,7 +37,7 @@ jobs:
       # Step 4: Build and push the Docker image for the worker service
       - name: Build and push Worker image
         run: |
-          docker build -t ygreekgod659/voting-app-worker:latest ./worker
+          docker build -t greekgod659/voting-app-worker:latest ./worker
           docker push greekgod659/voting-app-worker:latest
 
       # Step 5: Set up Minikube context (using Minikube's kubeconfig)
