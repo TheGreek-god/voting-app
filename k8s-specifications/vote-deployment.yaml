@@ -15,8 +15,13 @@ spec:
         app: vote
     spec:
       containers:
-      - image: dockersamples/examplevotingapp_vote
+      - image: greekgod659/voting-app-vote:latest
         name: vote
         ports:
         - containerPort: 80
           name: vote
+        env:
+        - name: REDIS_HOST
+          value: redis  # The Kubernetes service name for Redis
+        - name: REDIS_PORT
+          value: "6379"  # Redis port
