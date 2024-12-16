@@ -15,5 +15,24 @@ spec:
         app: worker
     spec:
       containers:
-      - image: dockersamples/examplevotingapp_worker
+      - image: greekgod659/voting-app-worker:latest
         name: worker
+
+        env:
+        # Redis connection environment variables
+        - name: REDIS_HOST
+          value: redis      # Redis service name (resolves to internal DNS)
+        - name: REDIS_PORT
+          value: "6379"     # Default Redis port
+        
+        # PostgreSQL connection environment variables
+        - name: POSTGRES_HOST
+          value: postgres   # PostgreSQL service name (resolves to internal DNS)
+        - name: POSTGRES_PORT
+          value: "5432"     # Default PostgreSQL port
+        - name: POSTGRES_USER
+          value: admin      # PostgreSQL user
+        - name: POSTGRES_PASSWORD
+          value: password  # PostgreSQL password
+        - name: POSTGRES_DB
+          value: voting_app # PostgreSQL database
