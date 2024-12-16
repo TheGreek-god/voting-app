@@ -15,8 +15,20 @@ spec:
         app: result
     spec:
       containers:
-      - image: dockersamples/examplevotingapp_result
+      - image: greekgod659/voting-app-result:latest
         name: result
         ports:
         - containerPort: 80
           name: result
+        env:
+        # Environment variables for PostgreSQL connection
+        - name: POSTGRES_HOST
+          value: postgres  # The name of the PostgreSQL service
+        - name: POSTGRES_PORT
+          value: "5432"    # The default PostgreSQL port
+        - name: POSTGRES_USER
+          value: admin      # Your PostgreSQL user
+        - name: POSTGRES_PASSWORD
+          value: password  # Your PostgreSQL password
+        - name: POSTGRES_DB
+          value: voting_app # Your PostgreSQL database
