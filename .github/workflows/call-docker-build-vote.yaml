@@ -1,9 +1,7 @@
 name: Build and Deploy Vote Service
 
 on:
-  # This triggers the workflow on a manual trigger
   workflow_dispatch:
-  
   push:
     paths:
       - 'vote/**'
@@ -62,3 +60,15 @@ jobs:
           kubectl rollout status deployment/vote
           kubectl get pods
           kubectl get svc
+
+      # Step 9: Expose the Vote Service via Minikube
+      - name: Expose the Vote Service using Minikube
+        run: |
+          minikube service vote-service --url
+        # Optionally capture the URL output into a variable if needed
+        id: expose-service
+
+      # Step 10: Output the URL of the service
+      - name: Output Vote Service URL
+        run: |
+          echo "The Vote Service is available at ${{ steps.expose-service.outputs.url }}"
