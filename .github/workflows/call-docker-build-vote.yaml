@@ -64,7 +64,8 @@ jobs:
       # Step 9: Expose the Vote Service via Minikube
       - name: Expose the Vote Service using Minikube
         run: |
-          minikube service vote-service --url
+          minikube service list
+          
         # Optionally capture the URL output into a variable if needed
         id: expose-service
 
