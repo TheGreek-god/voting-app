@@ -6,7 +6,7 @@
 
 services:
   vote:
-    image: dockersamples/examplevotingapp_vote
+    image: greekgod659/voting-app-vote:latest
     depends_on:
       redis:
         condition: service_healthy 
@@ -17,10 +17,10 @@ services:
       - back-tier
 
   result:
-    image: dockersamples/examplevotingapp_result
+    image: greekgod659/voting-app-result:latest
     depends_on:
       db:
-        condition: service_healthy 
+        condition: service_healthy
     ports:
       - "8081:80"
     networks:
@@ -28,7 +28,7 @@ services:
       - back-tier
 
   worker:
-    image: dockersamples/examplevotingapp_worker
+    image: greekgod659/voting-app-worker:latest
     depends_on:
       redis:
         condition: service_healthy 
